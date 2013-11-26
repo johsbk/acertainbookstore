@@ -298,7 +298,7 @@ public class CertainBookStore implements BookStore, StockManager {
 		throw new BookStoreException(BookStoreConstants.RATING + rating
 			+ BookStoreConstants.INVALID);
 	    
-	    /* Inputs are valid so, ready to rate the books */
+	    /* Inputs are valid so, ready to rate the books change */
 	    book = bookMap.get(ISBN);
 	    book.addRating(rating);
 	}

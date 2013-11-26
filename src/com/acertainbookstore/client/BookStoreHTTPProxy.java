@@ -29,115 +29,128 @@ import com.acertainbookstore.utils.BookStoreUtility;
  * 
  */
 public class BookStoreHTTPProxy implements BookStore {
-	protected HttpClient client;
-	protected String serverAddress;
+    protected HttpClient client;
+    protected String serverAddress;
 
-	/**
-	 * Initialize the client object
-	 */
-	public BookStoreHTTPProxy(String serverAddress) throws Exception {
-		setServerAddress(serverAddress);
-		client = new HttpClient();
-		client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-		client.setMaxConnectionsPerAddress(BookStoreClientConstants.CLIENT_MAX_CONNECTION_ADDRESS); // max
-																									// concurrent
-																									// connections
-																									// to
-																									// every
-																									// address
-		client.setThreadPool(new QueuedThreadPool(
-				BookStoreClientConstants.CLIENT_MAX_THREADSPOOL_THREADS)); // max
-																			// threads
-		client.setTimeout(BookStoreClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS); // seconds
-																					// timeout;
-																					// if
-																					// no
-																					// server
-																					// reply,
-																					// the
-																					// request
-																					// expires
-		client.start();
+    /**
+     * Initialize the client object
+     */
+    public BookStoreHTTPProxy(String serverAddress) throws Exception {
+	setServerAddress(serverAddress);
+	client = new HttpClient();
+	client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+	client.setMaxConnectionsPerAddress(BookStoreClientConstants.CLIENT_MAX_CONNECTION_ADDRESS); // max
+												    // concurrent
+												    // connections
+												    // to
+												    // every
+												    // address
+	client.setThreadPool(new QueuedThreadPool(
+		BookStoreClientConstants.CLIENT_MAX_THREADSPOOL_THREADS)); // max
+									   // threads
+	client.setTimeout(BookStoreClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS); // seconds
+										  // timeout;
+										  // if
+										  // no
+										  // server
+										  // reply,
+										  // the
+										  // request
+										  // expires
+	client.start();
+    }
+
+    public String getServerAddress() {
+	return serverAddress;
+    }
+
+    public void setServerAddress(String serverAddress) {
+	this.serverAddress = serverAddress;
+    }
+
+    public void buyBooks(Set<BookCopy> isbnSet) throws BookStoreException {
+	ContentExchange exchange = new ContentExchange();
+	String urlString = serverAddress + "/" + BookStoreMessageTag.BUYBOOKS;
+
+	String listISBNsxmlString = BookStoreUtility
+		.serializeObjectToXMLString(isbnSet);
+
+	exchange.setMethod("POST");
+	exchange.setURL(urlString);
+	Buffer requestContent = new ByteArrayBuffer(listISBNsxmlString);
+	exchange.setRequestContent(requestContent);
+
+	BookStoreUtility.SendAndRecv(this.client, exchange);
+
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Book> getBooks(Set<Integer> isbnSet) throws BookStoreException {
+	ContentExchange exchange = new ContentExchange();
+	String urlString = serverAddress + "/" + BookStoreMessageTag.GETBOOKS;
+
+	String listISBNsxmlString = BookStoreUtility
+		.serializeObjectToXMLString(isbnSet);
+	exchange.setMethod("POST");
+	exchange.setURL(urlString);
+	Buffer requestContent = new ByteArrayBuffer(listISBNsxmlString);
+	exchange.setRequestContent(requestContent);
+
+	return (List<Book>) BookStoreUtility.SendAndRecv(this.client, exchange);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Book> getEditorPicks(int numBooks) throws BookStoreException {
+	ContentExchange exchange = new ContentExchange();
+	String urlEncodedNumBooks = null;
+
+	try {
+	    urlEncodedNumBooks = URLEncoder.encode(Integer.toString(numBooks),
+		    "UTF-8");
+	} catch (UnsupportedEncodingException ex) {
+	    throw new BookStoreException("unsupported encoding of numbooks", ex);
 	}
 
-	public String getServerAddress() {
-		return serverAddress;
+	String urlString = serverAddress + "/"
+		+ BookStoreMessageTag.EDITORPICKS + "?"
+		+ BookStoreConstants.BOOK_NUM_PARAM + "=" + urlEncodedNumBooks;
+
+	exchange.setURL(urlString);
+
+	return (List<Book>) BookStoreUtility.SendAndRecv(this.client, exchange);
+    }
+
+    public void stop() {
+	try {
+	    client.stop();
+	} catch (Exception e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
 	}
+    }
 
-	public void setServerAddress(String serverAddress) {
-		this.serverAddress = serverAddress;
+    @Override
+    public void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
+	// TODO Auto-generated method stub
+
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
+	ContentExchange exchange = new ContentExchange();
+	String urlEncodedNumBooks = null;
+	try {
+	    urlEncodedNumBooks = URLEncoder.encode(Integer.toString(numBooks),
+		    "UTF-8");
+	} catch (UnsupportedEncodingException e) {
+	    throw new BookStoreException("Unsupported encoding of numBooks" + e);
 	}
-
-	public void buyBooks(Set<BookCopy> isbnSet) throws BookStoreException {
-		ContentExchange exchange = new ContentExchange();
-		String urlString = serverAddress + "/" + BookStoreMessageTag.BUYBOOKS;
-
-		String listISBNsxmlString = BookStoreUtility
-				.serializeObjectToXMLString(isbnSet);
-		exchange.setMethod("POST");
-		exchange.setURL(urlString);
-		Buffer requestContent = new ByteArrayBuffer(listISBNsxmlString);
-		exchange.setRequestContent(requestContent);
-
-		BookStoreUtility.SendAndRecv(this.client, exchange);
-
-	}
-
-	@SuppressWarnings("unchecked")
-	public List<Book> getBooks(Set<Integer> isbnSet) throws BookStoreException {
-		ContentExchange exchange = new ContentExchange();
-		String urlString = serverAddress + "/" + BookStoreMessageTag.GETBOOKS;
-
-		String listISBNsxmlString = BookStoreUtility
-				.serializeObjectToXMLString(isbnSet);
-		exchange.setMethod("POST");
-		exchange.setURL(urlString);
-		Buffer requestContent = new ByteArrayBuffer(listISBNsxmlString);
-		exchange.setRequestContent(requestContent);
-
-		return (List<Book>) BookStoreUtility.SendAndRecv(this.client, exchange);
-	}
-
-	@SuppressWarnings("unchecked")
-	public List<Book> getEditorPicks(int numBooks) throws BookStoreException {
-		ContentExchange exchange = new ContentExchange();
-		String urlEncodedNumBooks = null;
-
-		try {
-			urlEncodedNumBooks = URLEncoder.encode(Integer.toString(numBooks),
-					"UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			throw new BookStoreException("unsupported encoding of numbooks", ex);
-		}
-
-		String urlString = serverAddress + "/"
-				+ BookStoreMessageTag.EDITORPICKS + "?"
-				+ BookStoreConstants.BOOK_NUM_PARAM + "=" + urlEncodedNumBooks;
-
-		exchange.setURL(urlString);
-
-		return (List<Book>) BookStoreUtility.SendAndRecv(this.client, exchange);
-	}
-
-	public void stop() {
-		try {
-			client.stop();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	String urlString = serverAddress + "/" + BookStoreMessageTag.GETTOPRATEDBOOKS
+		+ "?" + BookStoreConstants.BOOK_NUM_PARAM + "="
+		+ urlEncodedNumBooks;
+	exchange.setURL(urlString);
+	return (List<Book>) BookStoreUtility.SendAndRecv(client, exchange);
+    }
 
 }

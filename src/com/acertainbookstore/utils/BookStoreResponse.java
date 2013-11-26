@@ -5,37 +5,37 @@ import java.util.List;
 import com.acertainbookstore.business.Book;
 
 /**
- * Data Structure that we use to communicate objects and error messages
- * from the server to the client.
+ * Data Structure that we use to communicate objects and error messages from the
+ * server to the client.
  * 
  */
 public class BookStoreResponse {
-	private BookStoreException exception;
-	private List<?> list;
+    private BookStoreException exception;
+    private List<?> list;
 
-	public BookStoreException getException() {
-		return exception;
-	}
+    public BookStoreResponse() {
+	this.setException(null);
+	this.setList(null);
+    }
 
-	public void setException(BookStoreException exception) {
-		this.exception = exception;
-	}
+    public BookStoreResponse(BookStoreException exception, List<Book> list) {
+	this.setException(exception);
+	this.setList(list);
+    }
 
-	public BookStoreResponse(BookStoreException exception, List<Book> list) {
-		this.setException(exception);
-		this.setList(list);
-	}
+    public BookStoreException getException() {
+	return exception;
+    }
 
-	public BookStoreResponse() {
-		this.setException(null);
-		this.setList(null);
-	}
+    public void setException(BookStoreException exception) {
+	this.exception = exception;
+    }
 
-	public List<?> getList() {
-		return list;
-	}
+    public List<?> getList() {
+	return list;
+    }
 
-	public void setList(List<?> list) {
-		this.list = list;
-	}
+    public void setList(List<?> list) {
+	this.list = list;
+    }
 }

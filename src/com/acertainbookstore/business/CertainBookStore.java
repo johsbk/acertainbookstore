@@ -279,7 +279,8 @@ public class CertainBookStore implements BookStore, StockManager {
 
     /* Why is this method not synchronized? */
     @Override
-    public synchronized void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
+    public synchronized void rateBooks(Set<BookRating> bookRating)
+	    throws BookStoreException {
 	/* Check if the input is valid */
 	if (bookRating == null)
 	    throw new BookStoreException(BookStoreConstants.NULL_INPUT);
@@ -297,11 +298,14 @@ public class CertainBookStore implements BookStore, StockManager {
 	    if (BookStoreUtility.isInvalidRating(rating))
 		throw new BookStoreException(BookStoreConstants.RATING + rating
 			+ BookStoreConstants.INVALID);
-	    
-	    /* Inputs are valid so, ready to rate the books change */
-	    book = bookMap.get(ISBN);
-	    book.addRating(rating);
 	}
+
+	/* Inputs are valid so, ready to rate the books change */
+	for (BookRating br : bookRating) {
+	    book = bookMap.get(br.getISBN());
+	    book.addRating(br.getRating());
+	}
+	
 	return;
     }
 

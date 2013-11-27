@@ -6,6 +6,7 @@ package com.acertainbookstore.business;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,7 +18,6 @@ import java.util.Set;
 
 import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.interfaces.StockManager;
-import com.acertainbookstore.utils.BookRatingComparator;
 import com.acertainbookstore.utils.BookStoreConstants;
 import com.acertainbookstore.utils.BookStoreException;
 import com.acertainbookstore.utils.BookStoreUtility;
@@ -264,33 +264,35 @@ public class CertainBookStore implements BookStore, StockManager {
 	    throw new BookStoreException("numBooks = " + numBooks
 		    + ", but it must be positive");
 	}
-	if (bookMap.isEmpty()) {
-	    throw new BookStoreException(BookStoreConstants.NOT_AVAILABLE);
+	Collection<BookStoreBook> books = bookMap.values();
+	if (books.isEmpty()) {
+	    throw new BookStoreException("No books in the bookstore");
 	}
-	List<BookStoreBook> allBooksRated = new ArrayList<BookStoreBook>();
-	List<Book> listTopRated = new ArrayList<Book>();
-	Iterator<Entry<Integer, BookStoreBook>> it = bookMap.entrySet()
-		.iterator();
-	BookStoreBook book;
 
-	/* Get all books that are rated */
-	while (it.hasNext()) {
-	    Entry<Integer, BookStoreBook> pair = (Entry<Integer, BookStoreBook>) it
-		    .next();
-	    book = (BookStoreBook) pair.getValue();
-	    if (book.getAverageRating() > 0) {
-		allBooksRated.add(book);
+	List<BookStoreBook> listRatedBooks = new ArrayList<BookStoreBook>();
+	List<Book> listTopRatedBooks = new ArrayList<Book>();
+
+	for (BookStoreBook book : books) {
+	    if (book.getAverageRating() > 0)
+		listRatedBooks.add(book);
+	}
+
+	Comparator<BookStoreBook> comparator = new Comparator<BookStoreBook>() {
+	    public int compare(BookStoreBook book1, BookStoreBook book2) {
+		return Float.compare(book1.getAverageRating(),
+			book2.getAverageRating()); // use your logic
 	    }
-	}
-	Collections.sort(allBooksRated, new BookRatingComparator());
-	Collections.reverse(allBooksRated);
-	int topRatedBookSize = (allBooksRated.size() < numBooks) ? allBooksRated
-		.size() : numBooks;
+	};
 
-	for (int i = 0; i < topRatedBookSize; i++) {
-	    listTopRated.add(allBooksRated.get(i).immutableBook());
+	Collections.sort(listRatedBooks, comparator);
+	Collections.reverse(listRatedBooks);
+
+	for (BookStoreBook book : listRatedBooks) {
+	    listTopRatedBooks.add(book.immutableStockBook());
+	    if (listTopRatedBooks.size() == numBooks)
+		break;
 	}
-	return listTopRated;
+	return listTopRatedBooks;
     }
 
     @Override
@@ -306,6 +308,7 @@ public class CertainBookStore implements BookStore, StockManager {
 		listBooksInDemand.add(book.immutableStockBook());
 	    }
 	}
+
 	return listBooksInDemand;
     }
 

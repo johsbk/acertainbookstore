@@ -181,18 +181,36 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 			.serializeObjectToXMLString(bookStoreresponse);
 		response.getWriter().println(listBooksxmlString);
 		break;
-		
-		/*getTopRatedBooks() HTTP message handler stub code*/
+
+	    /* getTopRatedBooks() HTTP message handler stub code */
 	    case GETTOPRATEDBOOKS:
-		numBooksString= URLDecoder.decode(request.getParameter(BookStoreConstants.BOOK_NUM_PARAM),"UTF-8");
+		numBooksString = URLDecoder
+			.decode(request
+				.getParameter(BookStoreConstants.BOOK_NUM_PARAM),
+				"UTF-8");
 		bookStoreresponse = new BookStoreResponse();
 		try {
-		    numBooks = BookStoreUtility.convertStringToInt(numBooksString);
-		    bookStoreresponse.setList(CertainBookStore.getInstance().getTopRatedBooks(numBooks));
+		    numBooks = BookStoreUtility
+			    .convertStringToInt(numBooksString);
+		    bookStoreresponse.setList(CertainBookStore.getInstance()
+			    .getTopRatedBooks(numBooks));
 		} catch (BookStoreException ex) {
 		    bookStoreresponse.setException(ex);
 		}
-		listBooksxmlString = BookStoreUtility.serializeObjectToXMLString(bookStoreresponse);
+		listBooksxmlString = BookStoreUtility
+			.serializeObjectToXMLString(bookStoreresponse);
+		response.getWriter().println(listBooksxmlString);
+		break;
+	    case GETBOOKSINDEMAND:
+		bookStoreresponse = new BookStoreResponse();
+		try {
+		    bookStoreresponse.setList(CertainBookStore.getInstance()
+			    .getBooksInDemand());
+		} catch (BookStoreException e) {
+		    bookStoreresponse.setException(e);
+		}
+		listBooksxmlString = BookStoreUtility
+			.serializeObjectToXMLString(bookStoreresponse);
 		response.getWriter().println(listBooksxmlString);
 		break;
 	    default:

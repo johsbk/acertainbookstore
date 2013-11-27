@@ -5,6 +5,7 @@ package com.acertainbookstore.business;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,6 +17,7 @@ import java.util.Set;
 
 import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.interfaces.StockManager;
+import com.acertainbookstore.utils.BookRatingComparator;
 import com.acertainbookstore.utils.BookStoreConstants;
 import com.acertainbookstore.utils.BookStoreException;
 import com.acertainbookstore.utils.BookStoreUtility;
@@ -258,7 +260,37 @@ public class CertainBookStore implements BookStore, StockManager {
     @Override
     public synchronized List<Book> getTopRatedBooks(int numBooks)
 	    throws BookStoreException {
-	return null;
+	if (numBooks <= 0) {
+	    throw new BookStoreException("numBooks = " + numBooks
+		    + ", but it must be positive");
+	}
+	if (bookMap.isEmpty()) {
+	    throw new BookStoreException(BookStoreConstants.NOT_AVAILABLE);
+	}
+	List<BookStoreBook> allBooksRated = new ArrayList<BookStoreBook>();
+	List<Book> listTopRated = new ArrayList<Book>();
+	Iterator<Entry<Integer, BookStoreBook>> it = bookMap.entrySet()
+		.iterator();
+	BookStoreBook book;
+
+	/* Get all books that are rated */
+	while (it.hasNext()) {
+	    Entry<Integer, BookStoreBook> pair = (Entry<Integer, BookStoreBook>) it
+		    .next();
+	    book = (BookStoreBook) pair.getValue();
+	    if (book.getAverageRating() > 0) {
+		allBooksRated.add(book);
+	    }
+	}
+	Collections.sort(allBooksRated, new BookRatingComparator());
+	Collections.reverse(allBooksRated);
+	int topRatedBookSize = (allBooksRated.size() < numBooks) ? allBooksRated
+		.size() : numBooks;
+
+	for (int i = 0; i < topRatedBookSize; i++) {
+	    listTopRated.add(allBooksRated.get(i).immutableBook());
+	}
+	return listTopRated;
     }
 
     @Override
@@ -305,7 +337,7 @@ public class CertainBookStore implements BookStore, StockManager {
 	    book = bookMap.get(br.getISBN());
 	    book.addRating(br.getRating());
 	}
-	
+
 	return;
     }
 

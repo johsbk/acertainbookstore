@@ -5,6 +5,8 @@ package com.acertainbookstore.business;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -258,7 +260,27 @@ public class CertainBookStore implements BookStore, StockManager {
     @Override
     public synchronized List<Book> getTopRatedBooks(int numBooks)
 	    throws BookStoreException {
-	return null;
+    	Collection<BookStoreBook> books = bookMap.values();
+    	if (books.isEmpty()) {
+    	    throw new BookStoreException("No books in the bookstore");
+    	}
+    	List<ImmutableStockBook> listTopRatedBooks = new ArrayList<ImmutableStockBook>();
+    	for (BookStoreBook book : books) {
+	    	listTopRatedBooks.add((ImmutableStockBook) book.immutableStockBook());
+    	}
+    	Comparator<ImmutableStockBook> comparator = new Comparator<ImmutableStockBook>() {
+    	    public int compare(ImmutableStockBook c1, ImmutableStockBook c2) {
+    	        return c2.getAverageRating() < c1.getAverageRating() ? 1 : -1; // use your logic
+    	    }
+    	};
+    	
+    	Collections.sort(listTopRatedBooks,comparator);
+    	List<Book> result = new ArrayList<Book>();
+    	for (ImmutableStockBook book : listTopRatedBooks) {
+    		result.add((Book) book);
+    		if (result.size() == numBooks) break;
+    	}
+    	return result;
     }
 
     @Override
@@ -274,6 +296,7 @@ public class CertainBookStore implements BookStore, StockManager {
 		listBooksInDemand.add(book.immutableStockBook());
 	    }
 	}
+	
 	return listBooksInDemand;
     }
 

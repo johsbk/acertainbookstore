@@ -279,13 +279,12 @@ public class CertainBookStore implements BookStore, StockManager {
 
 	Comparator<BookStoreBook> comparator = new Comparator<BookStoreBook>() {
 	    public int compare(BookStoreBook book1, BookStoreBook book2) {
-		return Float.compare(book1.getAverageRating(),
-			book2.getAverageRating()); // use your logic
+		return Float.compare(book2.getAverageRating(),
+			book1.getAverageRating()); // use your logic
 	    }
 	};
 
 	Collections.sort(listRatedBooks, comparator);
-	Collections.reverse(listRatedBooks);
 
 	for (BookStoreBook book : listRatedBooks) {
 	    listTopRatedBooks.add(book.immutableStockBook());

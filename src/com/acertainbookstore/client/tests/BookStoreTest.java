@@ -424,6 +424,23 @@ public class BookStoreTest {
 	    e.printStackTrace();
 	    fail();
 	}
+	// Try to rate a book that is not available in the bookstore
+	boolean exception = false;
+	bookRatingList.add(new BookRating(testISBN + 3, 2));
+	try {
+	    client.rateBooks(bookRatingList);
+	} catch (BookStoreException e) {
+	    exception = true;
+	}
+	assertTrue(exception);
+	try {
+	    currentList = storeManager.getBooks();
+	    assertTrue("No ratings are made to a non existent book",
+		    currentList.equals(listBooks));
+	} catch (BookStoreException e) {
+	    e.printStackTrace();
+	    fail();
+	}
 
     }
 

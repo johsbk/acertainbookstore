@@ -260,6 +260,7 @@ public class CertainBookStore implements BookStore, StockManager {
     @Override
     public synchronized List<Book> getTopRatedBooks(int numBooks)
 	    throws BookStoreException {
+	// No negative number
 	if (numBooks <= 0) {
 	    throw new BookStoreException("numBooks = " + numBooks
 		    + ", but it must be positive");
@@ -271,7 +272,7 @@ public class CertainBookStore implements BookStore, StockManager {
 
 	List<BookStoreBook> listRatedBooks = new ArrayList<BookStoreBook>();
 	List<Book> listTopRatedBooks = new ArrayList<Book>();
-
+	// we only count the book has a rating
 	for (BookStoreBook book : books) {
 	    if (book.getAverageRating() > 0)
 		listRatedBooks.add(book);
@@ -280,7 +281,7 @@ public class CertainBookStore implements BookStore, StockManager {
 	Comparator<BookStoreBook> comparator = new Comparator<BookStoreBook>() {
 	    public int compare(BookStoreBook book1, BookStoreBook book2) {
 		return Float.compare(book2.getAverageRating(),
-			book1.getAverageRating()); // use your logic
+			book1.getAverageRating()); // get right order of books
 	    }
 	};
 
@@ -291,9 +292,13 @@ public class CertainBookStore implements BookStore, StockManager {
 	    if (listTopRatedBooks.size() == numBooks)
 		break;
 	}
+	// return the certain amount of books by its rating
 	return listTopRatedBooks;
     }
 
+    /*
+     * getBooksInDemand method: check the books in store
+     */
     @Override
     public synchronized List<StockBook> getBooksInDemand()
 	    throws BookStoreException {
@@ -311,7 +316,12 @@ public class CertainBookStore implements BookStore, StockManager {
 	return listBooksInDemand;
     }
 
-    /* Why is this method not synchronized? */
+    /*
+     * We found out that this method is not a synchronized method from
+     * beginning. but for a concurrency control method, in this RPC, we need to
+     * keep the data same for all clients otherwise, there will be conflicts if
+     * getRate and rateBooks are called at the same time from different clients
+     */
     @Override
     public synchronized void rateBooks(Set<BookRating> bookRating)
 	    throws BookStoreException {

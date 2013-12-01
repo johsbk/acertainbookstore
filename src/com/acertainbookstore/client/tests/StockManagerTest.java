@@ -416,6 +416,18 @@ public class StockManagerTest {
 	}
 	assertTrue("testISBN should be returned by getBooksInDemand",
 		listContainsTestISBN);
+	
+	// we got a new copy and buy for the second time 
+	// now it should be able to buy
+	Set<BookCopy> booksToBuySecondTime = new HashSet<BookCopy>();
+	booksToBuySecondTime.add(new BookCopy(testISBN, 1));
+	boolean canNotBuyException = false;
+	try {
+	    client.buyBooks(booksToBuySecondTime);
+	} catch (BookStoreException e) {
+		canNotBuyException = true;
+	}
+	assertTrue("You can buy the book now", canNotBuyException);
     }
 
     @AfterClass

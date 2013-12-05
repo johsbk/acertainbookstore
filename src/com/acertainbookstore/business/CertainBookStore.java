@@ -46,7 +46,6 @@ public class CertainBookStore implements BookStore, StockManager {
 	}
 	return singleInstance;
     }
-
     public synchronized void addBooks(Set<StockBook> bookSet)
 	    throws BookStoreException {
 

@@ -8,22 +8,26 @@ import com.acertainbookstore.interfaces.StockManager;
 import com.acertainbookstore.utils.BookStoreException;
 
 public class TestStockManager implements Runnable {
-    private static StockManager storeManager =ConcurrentCertainBookStore.getInstance();;
+    private static StockManager storeManager = ConcurrentCertainBookStore
+	    .getInstance();;
     private Set<BookCopy> copiesToAdd;
-    public TestStockManager(Set<BookCopy> copiesToAdd) {
-    	this.copiesToAdd = copiesToAdd;
-    }
-	public void addCopies() {
-		try {
 
-			storeManager.addCopies(copiesToAdd);
-		} catch (BookStoreException e) {
-		    e.printStackTrace();
-		}
+    public TestStockManager(Set<BookCopy> copiesToAdd) {
+	this.copiesToAdd = copiesToAdd;
+    }
+
+    public void addCopies() {
+	try {
+
+	    storeManager.addCopies(copiesToAdd);
+	} catch (BookStoreException e) {
+	    e.printStackTrace();
 	}
-	@Override
-	public void run() {
-		addCopies();
-	}
+    }
+
+    @Override
+    public void run() {
+	addCopies();
+    }
 
 }

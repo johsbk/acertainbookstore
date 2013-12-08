@@ -7,24 +7,27 @@ import com.acertainbookstore.business.ConcurrentCertainBookStore;
 import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.utils.BookStoreException;
 
-public class TestBookstoreClient implements Runnable {
-    private static BookStore client = ConcurrentCertainBookStore.getInstance();;
+public class TestBookstoreClient implements Runnable, TestClient {
+    private static BookStore client = ConcurrentCertainBookStore.getInstance();
     private Set<BookCopy> booksToBuy;
 
     public TestBookstoreClient(Set<BookCopy> booksToBuy) {
 	this.booksToBuy = booksToBuy;
     }
 
-    public void buyBooks() {
+    @Override
+    public void run() {
+	performFunctionality();
+    }
+
+    @Override
+    public void performFunctionality() {
 	try {
 	    client.buyBooks(booksToBuy);
 	} catch (BookStoreException e) {
 	    e.printStackTrace();
 	}
+
     }
 
-    @Override
-    public void run() {
-	buyBooks();
-    }
 }

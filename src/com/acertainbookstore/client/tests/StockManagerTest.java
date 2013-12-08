@@ -70,9 +70,7 @@ public class StockManagerTest {
 	Set<StockBook> booksToAdd = new HashSet<StockBook>();
 	Integer testISBN = 100;
 	booksToAdd.add(new ImmutableStockBook(testISBN,
-		"*@#&)%rdrrdjtIHH%^#)$&N 37874\n \t",
-		"eurgqo	89274267^&#@&$%@&%$( \t", (float) 100, 5, 0, 0, 0,
-		false));
+		"Book Name","Author", (float) 100, 5, 0, 0, 0,false));
 
 	List<StockBook> listBooks = null;
 	try {

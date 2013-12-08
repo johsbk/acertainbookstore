@@ -7,7 +7,7 @@ import com.acertainbookstore.business.ConcurrentCertainBookStore;
 import com.acertainbookstore.interfaces.StockManager;
 import com.acertainbookstore.utils.BookStoreException;
 
-public class TestStockManager implements Runnable {
+public class TestStockManager implements Runnable, TestClient {
     private static StockManager storeManager = ConcurrentCertainBookStore
 	    .getInstance();;
     private Set<BookCopy> copiesToAdd;
@@ -16,18 +16,18 @@ public class TestStockManager implements Runnable {
 	this.copiesToAdd = copiesToAdd;
     }
 
-    public void addCopies() {
-	try {
+    @Override
+    public void run() {
+	performFunctionality();
+    }
 
+    @Override
+    public void performFunctionality() {
+	try {
 	    storeManager.addCopies(copiesToAdd);
 	} catch (BookStoreException e) {
 	    e.printStackTrace();
 	}
-    }
-
-    @Override
-    public void run() {
-	addCopies();
     }
 
 }

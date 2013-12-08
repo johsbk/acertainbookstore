@@ -1,12 +1,12 @@
 package com.acertainbookstore.client.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -15,15 +15,15 @@ import org.junit.Test;
 
 import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
-import com.acertainbookstore.business.BookRating;
-import com.acertainbookstore.business.CertainBookStore;
 import com.acertainbookstore.business.ConcurrentCertainBookStore;
 import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.client.BookStoreHTTPProxy;
 import com.acertainbookstore.client.StockManagerHTTPProxy;
 import com.acertainbookstore.client.TestBookstoreClient;
+import com.acertainbookstore.client.TestBookstoreClientRetriever;
 import com.acertainbookstore.client.TestStockManager;
+import com.acertainbookstore.client.TestStockManagerAdder;
 import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.interfaces.StockManager;
 import com.acertainbookstore.utils.BookStoreException;
@@ -37,7 +37,6 @@ public class ConcurrentBookStoreTest {
     private static boolean localTest = true;
     private static StockManager storeManager;
     private static BookStore client;
-    private static ExecutorService executor = Executors.newCachedThreadPool();
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -64,9 +63,6 @@ public class ConcurrentBookStoreTest {
      * 
      * Here we want to test buy buuks and add copies functionality with multiple
      * clients
-     * 
-     */
-    /**
      * 
      */
     @Test
@@ -137,16 +133,14 @@ public class ConcurrentBookStoreTest {
 
     /**
      * 
-     * Here we want to test rateBook functionality
-     * 
-     * 1. We add a book.
-     * 
-     * 2. We rate it using rateBook to certain rating.
-     * 
-     * 3. We check if the rating is updated by executing getBooks.
-     * 
-     * 4. We also check that the appropriate exception is thrown when rateBook
-     * is executed with wrong arguments
+     * Here we want to test buy books and add copies functionality Two clients
+     * C1 and C2 , running in dierent threads, continuously invoke operations
+     * against the BookStore and StockManager interfaces. C1 invokes buyBooks to
+     * buy a given and xed collection of books (e.g., the Star Wars trilogy). C1
+     * then invokes addCopies to replenish the stock of exactly the same books
+     * bought. C2 continuously calls getBooks and ensures that the snapshot
+     * returned either has the quantities for all of these books as if they had
+     * been just bought or as if they had been just replenished.
      */
     @Test
     public void testBuyBooksAndAddCopiesContinious() {
@@ -222,6 +216,89 @@ public class ConcurrentBookStoreTest {
 	    e.printStackTrace();
 	    fail();
 	}
+    }
+
+    /*
+     * Here we test retrieving books with a bookstore client while trying to add
+     * a book that the client want to retrieve. Bookstore client want to get the
+     * booklist of testISBN1 while Stock manager try to add that book with a testISBN1.
+     * 
+     */
+    @Test
+    public void addBooksAndGetBooksTest() {
+	Integer testISBN = 100;
+	Integer testISBN2 = 200;
+	Set<StockBook> booksToAdd = new HashSet<StockBook>();
+	Set<StockBook> booksForAdding = new HashSet<StockBook>();
+	booksToAdd.add(new ImmutableStockBook(testISBN, "Book Name",
+		"Book Author", (float) 100, 5, 0, 0, 0, false));
+	ImmutableStockBook book = new ImmutableStockBook(testISBN2,
+		"Harry Potter", "JK Rawling", 300, 5, 0, 0, 0, false);
+	booksForAdding.add(book);
+	try {
+	    storeManager.addBooks(booksToAdd);
+	} catch (BookStoreException e) {
+	    e.printStackTrace();
+	}
+
+	Set<Integer> ISBNList = new HashSet<Integer>();
+	ISBNList.add(testISBN2);
+	List<StockBook> books = null;
+	try {
+	    books = storeManager.getBooks();
+	} catch (BookStoreException e) {
+	    e.printStackTrace();
+	    fail();
+	}
+	boolean containsTestISBN = false;
+	for (StockBook b : books) {
+	    if (b.getISBN() == testISBN) {
+		containsTestISBN = true;
+	    }
+	}
+	assertTrue("Bookstore contains testISBN1", containsTestISBN);
+
+	TestStockManagerAdder sma = new TestStockManagerAdder(booksForAdding);
+	TestBookstoreClientRetriever bscw = new TestBookstoreClientRetriever(
+		ISBNList);
+	List<Book> bookList;
+	Thread c1 = new Thread(sma);
+	Thread c2 = new Thread(bscw);
+	c1.start();
+	c2.start();
+	boolean containsTestISBN1 = false;
+	while (c1.isAlive() && c2.isAlive()) {
+	    bookList = bscw.getBookList();
+	    if (bookList != null) {
+		for (Book b : bookList) {
+		    if (b.getISBN() == testISBN)
+			containsTestISBN1 = true;
+		}
+	    }
+	}
+	assertFalse("Should not contain book", containsTestISBN1);
+	try {
+	    c1.join();
+	    c2.join();
+	} catch (InterruptedException e) {
+	    e.printStackTrace();
+	}
+	bookList = bscw.getBookList();
+	containsTestISBN1 = false;
+	for (Book b : bookList) {
+	    if (b.getISBN() == testISBN2) {
+		containsTestISBN1 = true;
+	    }
+	}
+	assertTrue("Threads finished should contain the testISBN1",
+		containsTestISBN1);
+	try {
+	    books = storeManager.getBooks();
+	} catch (BookStoreException e) {
+	    e.printStackTrace();
+	}
+	assertTrue("Current Books should contain the added book",
+		books.contains(book));
 
     }
 

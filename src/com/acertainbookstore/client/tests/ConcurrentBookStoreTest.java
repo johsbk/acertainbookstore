@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
+import com.acertainbookstore.business.BookRating;
 import com.acertainbookstore.business.ConcurrentCertainBookStore;
 import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
@@ -131,14 +132,10 @@ public class ConcurrentBookStoreTest {
 
     }
 
-    /**
+    /*
      * 
      * Here we want to test buy books and add copies functionality Two clients
-     * C1 and C2 , running in dierent threads, continuously invoke operations
-     * against the BookStore and StockManager interfaces. C1 invokes buyBooks to
-     * buy a given and xed collection of books (e.g., the Star Wars trilogy). C1
-     * then invokes addCopies to replenish the stock of exactly the same books
-     * bought. C2 continuously calls getBooks and ensures that the snapshot
+     * C2 continuously calls getBooks and ensures that the snapshot
      * returned either has the quantities for all of these books as if they had
      * been just bought or as if they had been just replenished.
      */
@@ -217,7 +214,146 @@ public class ConcurrentBookStoreTest {
 	    fail();
 	}
     }
+    /*
+     * test from different clients using rateBook method
+     * */
+    @Test
+    public void testRateBook()
+    {
+    	Integer testISBN = 700;
+    	Integer rating = 1;
 
+    	Set<StockBook> booksToAdd = new HashSet<StockBook>();
+    	booksToAdd.add(new ImmutableStockBook(testISBN, "Book Name",
+    		"Book Author", (float) 100, 5, 0, 0, 0, false));
+    	try {
+    	    storeManager.addBooks(booksToAdd);
+    	} catch (BookStoreException e) {
+    	    e.printStackTrace();
+    	    fail();
+    	}
+
+    	Set<BookRating> bookRatingList = new HashSet<BookRating>();
+    	bookRatingList.add(new BookRating(testISBN, rating));
+    	List<StockBook> listBooks = null;
+    	try {
+    	    client.rateBooks(bookRatingList);
+    	    listBooks = storeManager.getBooks();
+    	} catch (BookStoreException e1) {
+    	    e1.printStackTrace();
+    	    fail();
+    	}
+    	for (StockBook book : listBooks) {
+    	    if (book.getISBN() == testISBN) {
+    		assertTrue("before test, total rating is 1", book.getTotalRating() == rating);
+    		break;
+    	    }
+    	}
+    	
+    	// set book rating object
+    	BookRating bookRating1 = new BookRating(testISBN, 2);
+    	BookRating bookRating2 = new BookRating(testISBN, 3);
+    	
+    	TestBookstoreClient bsClient1 = new TestBookstoreClient(bookRating1);
+    	TestBookstoreClient bsClient2 = new TestBookstoreClient(bookRating2);
+    	// threads
+    	Thread t1 = new Thread(bsClient1);
+    	Thread t2 = new Thread(bsClient2);
+    	t1.start();
+    	t2.start();
+    	try {
+    	    t1.join();
+    	    t2.join();
+    	} catch (InterruptedException e) {
+    	    e.printStackTrace();
+    	    fail();
+    	}
+    	try {
+    	    listBooks = storeManager.getBooks();
+    	} catch (BookStoreException e1) {
+    	    e1.printStackTrace();
+    	    fail();
+    	}
+    	for (StockBook book : listBooks) {
+    	    if (book.getISBN() == testISBN) {
+    		assertTrue("after test, total rating is 6", book.getTotalRating() == 6);
+    		break;
+    	    }
+    	}
+    }
+    
+    /*
+     * rate and getTotal rating continuously
+     */
+    @Test
+    public void testRateBookContinuously(){
+    	Integer testISBN = 700;
+    	Integer rating = 1;
+
+    	Set<StockBook> booksToAdd = new HashSet<StockBook>();
+    	booksToAdd.add(new ImmutableStockBook(testISBN, "Book Name",
+    		"Book Author", (float) 100, 5, 0, 0, 0, false));
+    	try {
+    	    storeManager.addBooks(booksToAdd);
+    	} catch (BookStoreException e) {
+    	    e.printStackTrace();
+    	    fail();
+    	}
+
+    	Set<BookRating> bookRatingList = new HashSet<BookRating>();
+    	bookRatingList.add(new BookRating(testISBN, rating));
+    	List<StockBook> listBooks = null;
+    	try {
+    	    client.rateBooks(bookRatingList);
+    	    listBooks = storeManager.getBooks();
+    	} catch (BookStoreException e1) {
+    	    e1.printStackTrace();
+    	    fail();
+    	}
+    	for (StockBook book : listBooks) {
+    	    if (book.getISBN() == testISBN) {
+    		assertTrue("before test, total rating is 1", book.getTotalRating() == rating);
+    		break;
+    	    }
+    	}
+    	// set book rating object
+    	BookRating bookRating1 = new BookRating(testISBN, 2);
+    	BookRating bookRating2 = new BookRating(testISBN, 3);
+    	
+    	TestBookstoreClient bsClient1 = new TestBookstoreClient(bookRating1);
+    	TestBookstoreClient bsClient2 = new TestBookstoreClient(bookRating2);
+    	// threads
+    	Thread t1 = new Thread(bsClient1);
+    	Thread t2 = new Thread(bsClient2);
+    	t1.start();
+    	t2.start();
+    	while (t1.isAlive() && t2.isAlive()) {
+    	    try {
+    		listBooks = storeManager.getBooks();
+    		for (StockBook b : listBooks) {
+    		    if (b.getISBN() == testISBN) {
+    			assertTrue(
+    				"Total rating is correct",
+    				b.getTotalRating() == 1
+    					|| b.getTotalRating() == 3
+    					|| b.getTotalRating() == 4
+    					|| b.getTotalRating() == 6);
+    		    }
+    		}
+    	    } catch (BookStoreException e) {
+    		e.printStackTrace();
+    		fail();
+    	    }
+    	}
+    	try {
+    	    t1.join();
+    	    t2.join();
+    	} catch (InterruptedException e) {
+    	    e.printStackTrace();
+    	    fail();
+    	}
+
+    }
     /*
      * Here we test retrieving books with a bookstore client while trying to add
      * a book that the client want to retrieve. Bookstore client want to get the

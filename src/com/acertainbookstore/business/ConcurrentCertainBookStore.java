@@ -2,6 +2,8 @@ package com.acertainbookstore.business;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -283,19 +285,123 @@ public class ConcurrentCertainBookStore implements BookStore, StockManager {
     @Override
     public List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
 	// TODO Auto-generated method stub
-	throw new BookStoreException();
+    	// No negative number
+    	if (numBooks <= 0) {
+    	    throw new BookStoreException("numBooks = " + numBooks
+    		    + ", but it must be positive");
+    	}
+    	Collection<BookStoreBook> books = bookMap.values();
+    	if (books.isEmpty()) {
+    	    throw new BookStoreException("No books in the bookstore");
+    	}
+
+    	List<BookStoreBook> listRatedBooks = new ArrayList<BookStoreBook>();
+    	List<Book> listTopRatedBooks = new ArrayList<Book>();
+    	try
+    	{
+    		bsLock.readLock().lock(); // block other from writing data
+    		// we only count the book has a rating
+        	for (BookStoreBook book : books) {
+        	    if (book.getAverageRating() > 0)
+        		listRatedBooks.add(book);
+        	}
+
+        	Comparator<BookStoreBook> comparator = new Comparator<BookStoreBook>() {
+        	    public int compare(BookStoreBook book1, BookStoreBook book2) {
+        		return Float.compare(book2.getAverageRating(),
+        			book1.getAverageRating()); // get right order of books
+        	    }
+        	};
+
+        	Collections.sort(listRatedBooks, comparator);
+
+        	for (BookStoreBook book : listRatedBooks) {
+        	    listTopRatedBooks.add(book.immutableStockBook());
+        	    if (listTopRatedBooks.size() == numBooks)
+        		break;
+        	}
+    	}
+    	finally
+    	{
+    		bsLock.readLock().unlock();
+    	}
+    	
+    	// return the certain amount of books by its rating
+    	return listTopRatedBooks;
     }
 
     @Override
     public List<StockBook> getBooksInDemand() throws BookStoreException {
 	// TODO Auto-generated method stub
-	throw new BookStoreException();
+    	bsLock.updateLock().lock();
+    	List<StockBook> listBooksInDemand = new ArrayList<StockBook>();
+    	Collection<BookStoreBook> books = bookMap.values();
+    	if (books.isEmpty()) {
+    	    throw new BookStoreException("No books in the bookstore");
+    	}
+    	try
+    	{
+    		for (BookStoreBook book : books) {
+        	    if (book.hadSaleMiss()) {
+        		listBooksInDemand.add(book.immutableStockBook());
+        	    }
+        	}
+    	}
+    	finally
+    	{
+    		bsLock.updateLock().unlock();
+    	}
+    	return listBooksInDemand;
     }
 
     @Override
     public void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
 	// TODO Auto-generated method stub
-	throw new BookStoreException();
+    	//lock update lock, only allow read
+    	bsLock.updateLock().lock();
+    	try
+    	{
+    		/* Check if the input is valid */
+        	if (bookRating == null)
+        	    throw new BookStoreException(BookStoreConstants.NULL_INPUT);
+        	
+        	int ISBN, rating;
+        	BookStoreBook book;
+        	for (BookRating br : bookRating) {
+        	    ISBN = br.getISBN();
+        	    rating = br.getRating();
+        	    if (BookStoreUtility.isInvalidISBN(ISBN))
+        		throw new BookStoreException(BookStoreConstants.ISBN + ISBN
+        			+ BookStoreConstants.INVALID);
+        	    if (!bookMap.containsKey(ISBN))
+        		throw new BookStoreException(BookStoreConstants.ISBN + ISBN
+        			+ BookStoreConstants.NOT_AVAILABLE);
+        	    if (BookStoreUtility.isInvalidRating(rating))
+        		throw new BookStoreException(BookStoreConstants.RATING + rating
+        			+ BookStoreConstants.INVALID);
+        	}
+        	
+        	try
+        	{
+        		bsLock.writeLock().lock(); // upgrade to write lock
+        		/* Inputs are valid so, ready to rate the books change */
+            	for (BookRating br : bookRating) {
+            	    book = bookMap.get(br.getISBN());
+            	    book.addRating(br.getRating());
+            	}
+        	}
+        	finally
+        	{
+        		bsLock.writeLock().unlock(); // downgrade to update lock
+        	}
+        	
+    	}
+    	finally
+    	{
+    		bsLock.updateLock().unlock();
+    	}
+
+    	return;
     }
 
 }

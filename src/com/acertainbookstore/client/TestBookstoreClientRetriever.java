@@ -1,5 +1,6 @@
 package com.acertainbookstore.client;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +30,7 @@ public class TestBookstoreClientRetriever implements Runnable, TestClient {
 	    setBookList(client.getBooks(ISBNlist));
 	} catch (BookStoreException e) {
 	    e.printStackTrace();
+	    setBookList(new ArrayList<Book>());
 	}
     }
 

@@ -56,7 +56,7 @@ public class ImmutableBook implements Book {
     public String toString() {
 	String bookString = "ISBN = " + this.getISBN() + " Title = "
 		+ this.getTitle() + " Author = " + this.getAuthor()
-		+ " Price = " + this.getPrice();
+		+ " Price = " + this.getPrice() ;
 	return bookString;
     }
 

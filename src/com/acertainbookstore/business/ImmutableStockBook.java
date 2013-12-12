@@ -62,4 +62,8 @@ public final class ImmutableStockBook extends ImmutableBook implements
     public boolean isEditorPick() {
 	return editorPick;
     }
+    @Override
+    public String toString() {
+    	return super.toString()+ " numCopies="+this.getNumCopies();
+    }
 }

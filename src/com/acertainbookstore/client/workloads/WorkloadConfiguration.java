@@ -17,6 +17,7 @@ public class WorkloadConfiguration {
 	private int numEditorPicksToGet = 10;
 	private int numAddCopies = 10;
 	private int numBooksToAdd = 5;
+	private int numLackStock = 10;
 	private int warmUpRuns = 100;
 	private int numActualRuns = 500;
 	private float percentRareStockManagerInteraction = 10f;
@@ -39,6 +40,15 @@ public class WorkloadConfiguration {
 
 	public void setNumBooksToAdd(int numBooksToAdd) {
 		this.numBooksToAdd = numBooksToAdd;
+	}
+	
+
+	public int getNumLackStock() {
+		return numLackStock;
+	}
+
+	public void setNumLackStock(int numLackStock) {
+		this.numLackStock = numLackStock;
 	}
 
 	public WorkloadConfiguration(String serverAddress, boolean localTest)

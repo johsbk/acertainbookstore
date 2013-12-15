@@ -2,76 +2,69 @@ package com.acertainbookstore.client.tests;
 
 import static org.junit.Assert.*;
 
-import java.util.HashSet;
-import java.util.Random;
+import java.util.Comparator;
+
+import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.acertainbookstore.business.CertainBookStore;
 import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.client.workloads.BookSetGenerator;
+import com.acertainbookstore.interfaces.StockManager;
 import com.acertainbookstore.utils.BookStoreException;
 
+/**
+ * Test class to test the BookStore interface
+ * 
+ */
 public class BookSetGeneratorTest {
 
-    private static BookSetGenerator bsg;
-    private static Random rand;
-
-    @BeforeClass
-    public static void setUpBeforeClass() {
-	bsg = new BookSetGenerator();
-	rand = new Random();
+	@Test
+    public void testGenerateBooks() {
+    	BookSetGenerator bsg = new BookSetGenerator();
+    	try {
+    		int numBooks = 5;
+			Set<StockBook> books = bsg.nextSetOfStockBooks(numBooks);
+			assertEquals(numBooks, books.size());
+			//System.out.println(books);
+		} catch (BookStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
-
-    @Test
-    public void testGenerateRandomNumBooks() {
-	int bookSize = 7;
-	try {
-	    Set<StockBook> books = bsg.nextSetOfStockBooks(bookSize);
-	    assertEquals("Books are generated", bookSize, books.size());
-	    for (StockBook b : books)
-		System.out.println(b);
-	} catch (BookStoreException e) {
-	    System.out.println(e.getMessage());
+	@Test
+	public void testBLah() {
+		StockManager stockManager = CertainBookStore.getInstance();
+		BookSetGenerator bsg = new BookSetGenerator();
+		
+		List<StockBook> allBooks;
+		try {
+			stockManager.addBooks(bsg.nextSetOfStockBooks(100));
+			allBooks = stockManager.getBooks();
+		
+			int k = 5;
+			
+			if (k>allBooks.size()) {
+				throw new BookStoreException("Num lack stock is higher than the number for books in the store");
+			}
+			
+			PriorityQueue<StockBook> pq = new PriorityQueue<StockBook>(4, new Comparator<StockBook>() {
+	
+				@Override
+				public int compare(StockBook o1, StockBook o2) {
+					
+					return new Integer(o1.getNumCopies()).compareTo(new Integer(o2.getNumCopies()));
+				}
+				
+			});
+			pq.addAll(allBooks);
+			System.out.println(pq);
+		} catch (BookStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-    }
-
-    @Test
-    public void testSampleFromSetOfISBNS() {
-	int numBooks = 4;
-	Set<Integer> isbns = new HashSet<Integer>();
-	for (int i = 0; i < 10; i++) {
-	    isbns.add(rand.nextInt(98765) + 123);
-	}
-
-	Set<Integer> result = null;
-	try {
-	    result = bsg.sampleFromSetOfISBNs(isbns, numBooks);
-	    assertEquals("Set of isbns created Successfully", numBooks,
-		    result.size());
-	} catch (BookStoreException e) {
-	    System.out.println(e.getMessage());
-	}
-	boolean exceptionThrown = false;
-	try {
-	    result = bsg.sampleFromSetOfISBNs(isbns, 0);
-	} catch (BookStoreException e) {
-	    System.out.println(e.getMessage());
-	    exceptionThrown = true;
-	}
-	assertTrue("0 must throw exception", exceptionThrown);
-
-	exceptionThrown = false;
-	try {
-	    result = bsg.sampleFromSetOfISBNs(isbns, 16);
-	} catch (BookStoreException e) {
-	    System.out.println(e.getMessage());
-	    exceptionThrown = true;
-	}
-	assertTrue(" Bigger than isblist size must throw exception",
-		exceptionThrown);
-	System.out.println("ISBNList: " + result);
-    }
-
 }

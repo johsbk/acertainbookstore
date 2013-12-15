@@ -18,8 +18,8 @@ public class WorkloadConfiguration {
 	private int numAddCopies = 10;
 	private int numBooksToAdd = 5;
 	private int numLackStock = 10;
-	private int warmUpRuns = 100;
-	private int numActualRuns = 500;
+	private int warmUpRuns = 10;
+	private int numActualRuns = 50;
 	private float percentRareStockManagerInteraction = 10f;
 	private float percentFrequentStockManagerInteraction = 40f;
 	private BookSetGenerator bookSetGenerator = null;

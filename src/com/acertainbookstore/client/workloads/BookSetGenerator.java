@@ -1,10 +1,8 @@
 package com.acertainbookstore.client.workloads;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -17,67 +15,101 @@ import com.acertainbookstore.utils.BookStoreException;
  * class
  */
 public class BookSetGenerator {
-	private Random randNum = new Random();
-	public BookSetGenerator() {
-		// TODO Auto-generated constructor stub
-	}
 
-	/**
-	 * Returns num randomly selected isbns from the input set
-	 * 
-	 * @param num
-	 * @return
-	 * @throws BookStoreException 
-	 */
-	public Set<Integer> sampleFromSetOfISBNs(Set<Integer> isbns, int num) throws BookStoreException {
-		Set<Integer> sampleSet = new HashSet<Integer>();
-		Integer[] isbnArray = (Integer[]) isbns.toArray();
-		int range = isbns.size();
-		if (range < num) {
-			throw new BookStoreException("Num is larger than the size of the given set");
-		}
-		if (num < 0)
-			throw new BookStoreException("Num is less than 0");
-		else {
-			while (sampleSet.size() < num) {
-				range = isbns.size();
-				int random = randNum.nextInt(range);
+    private final Random rand;
 
-				sampleSet.add(isbnArray[random]);
-			}
-		}
-		return sampleSet;
-	}
+    public BookSetGenerator() {
+	this.rand = new Random();
+    }
 
-	/**
-	 * Return num stock books. For now return an ImmutableStockBook
-	 * 
-	 * @param num
-	 * @return
-	 * @throws BookStoreException 
-	 */
-	public Set<StockBook> nextSetOfStockBooks(int num) throws BookStoreException {
-		if (num < 0)
-			throw new BookStoreException("Num is less than 0");
-		Set<StockBook> setOfBooks = new HashSet<StockBook>();
-		ArrayList<Integer> isbns = new ArrayList<Integer>();
-		while(setOfBooks.size()<num) {
-			StockBook book = this.generateStockBook();
-			if (!isbns.contains(book.getISBN())) {
-				setOfBooks.add(book);
-				isbns.add(book.getISBN());
-			}
-			
-		}
-		return setOfBooks;
+    /*
+     * Returns num randomly selected isbns from the input set
+     */
+    
+    /**
+     * @param isbns
+     * @param num
+     * @return
+     * @throws BookStoreException
+     */
+    public Set<Integer> sampleFromSetOfISBNs(Set<Integer> isbns, int num)
+	    throws BookStoreException {
+	if (num <= 0)
+	    throw new BookStoreException("Num is below 0");
+	if (num > isbns.size())
+	    throw new BookStoreException(
+		    "List of isbn size is smaller than num");
+	Set<Integer> result = new HashSet<Integer>();
+	int range = isbns.size();
+	Integer[] isbnsArray = isbns.toArray(new Integer[isbns.size()]);
+	for (; result.size() < num;) {
+	    Integer isbn = isbnsArray[rand.nextInt(range)];
+	    if (!result.contains(isbn))
+		result.add(isbn);
 	}
-	private StockBook generateStockBook() {
-		return new ImmutableStockBook(this.generateISBN(), this.generateRandomString(), this.generateRandomString(),  randNum.nextFloat()*1000f+10f, randNum.nextInt(1000)+1, randNum.nextLong(), randNum.nextLong(), randNum.nextLong(), randNum.nextBoolean());
+	return result;
+    }
+
+    /*
+     * Return num stock books. For now return an ImmutableStockBook
+     */
+    
+    /**
+     * @param num
+     * @return
+     * @throws BookStoreException
+     */
+    public Set<StockBook> nextSetOfStockBooks(int num)
+	    throws BookStoreException {
+	if (num < 0)
+	    throw new BookStoreException("Num is smaller than 0");
+	Set<StockBook> books = new HashSet<StockBook>();
+	List<Integer> isbns = new ArrayList<Integer>();
+
+	for (; books.size() < num;) {
+	    StockBook book = generateRandomStockBook();
+	    if (!isbns.contains(book.getISBN())) {
+		books.add(book);
+		isbns.add(book.getISBN());
+	    }
 	}
-	private Integer generateISBN() {
-		return new Integer(randNum.nextInt(1000000)+100);
+	return books;
+    }
+
+    private StockBook generateRandomStockBook() {
+	return new ImmutableStockBook(generateISBN(), generateRandString(),
+		generateRandString(), generatePrice(), generateNumCopies(),
+		generateNextLong(2951, 364), generateNextLong(2571, 271),
+		generateNextLong(2567, 534), rand.nextBoolean());
+    }
+
+    
+    private long generateNextLong(int multiply, int sum) {
+	return (long) (rand.nextDouble() * multiply + sum);
+    }
+
+    private int generateNumCopies() {
+	return rand.nextInt(1234) + 654;
+    }
+
+    private float generatePrice() {
+	return rand.nextFloat() * 586f + 467f;
+    }
+
+    private String generateRandString() {
+	String alphabet = "abcdefghijklmnopqrstuvwxyz";
+	StringBuilder sb = new StringBuilder();
+	char[] chars = alphabet.toCharArray();
+	final int strSize = 20;
+	for (int i = 0; i < strSize; i++) {
+	    sb.append(chars[rand.nextInt(chars.length)]);
 	}
-	private String generateRandomString() {
-		return new BigInteger(130, randNum).toString(32);
-	}
+	return sb.toString();
+    }
+
+    private int generateISBN() {
+	final int ISBN_RANGE = 9876543;
+	final int ISBN_SUM = 123456;
+	return rand.nextInt(ISBN_RANGE) + ISBN_SUM;
+    }
 }

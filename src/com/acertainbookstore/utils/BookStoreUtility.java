@@ -138,10 +138,10 @@ public final class BookStoreUtility {
      * 
      * @param client
      * @param exchange
-     * @return A List<Book> for a get function, otherwise null
+     * @return A BookStoreResult for a get function, otherwise null
      * @throws BookStoreException
      */
-    public static List<?> SendAndRecv(HttpClient client,
+    public static BookStoreResult SendAndRecv(HttpClient client,
 	    ContentExchange exchange) throws BookStoreException {
 	int exchangeState;
 	try {
@@ -168,7 +168,7 @@ public final class BookStoreUtility {
 		if (ex != null) {
 		    throw ex;
 		}
-		return bookStoreResponse.getList();
+		return bookStoreResponse.getResult();
 
 	    } catch (UnsupportedEncodingException ex) {
 		throw new BookStoreException(

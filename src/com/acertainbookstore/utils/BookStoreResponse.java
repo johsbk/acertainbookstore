@@ -1,41 +1,39 @@
 package com.acertainbookstore.utils;
 
-import java.util.List;
-
-import com.acertainbookstore.business.Book;
-
 /**
+ * 
  * Data Structure that we use to communicate objects and error messages from the
  * server to the client.
  * 
  */
 public class BookStoreResponse {
-    private BookStoreException exception;
-    private List<?> list;
+	private BookStoreException exception = null;
+	private BookStoreResult result = null;
 
-    public BookStoreResponse() {
-	this.setException(null);
-	this.setList(null);
-    }
+	public BookStoreResponse() {
 
-    public BookStoreResponse(BookStoreException exception, List<Book> list) {
-	this.setException(exception);
-	this.setList(list);
-    }
+	}
 
-    public BookStoreException getException() {
-	return exception;
-    }
+	public BookStoreResponse(BookStoreException exception,
+			BookStoreResult result) {
+		this.setException(exception);
+		this.setResult(result);
+	}
 
-    public void setException(BookStoreException exception) {
-	this.exception = exception;
-    }
+	public BookStoreException getException() {
+		return exception;
+	}
 
-    public List<?> getList() {
-	return list;
-    }
+	public void setException(BookStoreException exception) {
+		this.exception = exception;
+	}
 
-    public void setList(List<?> list) {
-	this.list = list;
-    }
+	public BookStoreResult getResult() {
+		return result;
+	}
+
+	public void setResult(BookStoreResult result) {
+		this.result = result;
+	}
+
 }

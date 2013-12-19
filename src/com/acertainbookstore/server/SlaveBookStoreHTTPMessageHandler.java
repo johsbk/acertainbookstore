@@ -15,9 +15,13 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import com.acertainbookstore.business.BookCopy;
+import com.acertainbookstore.business.BookEditorPick;
+import com.acertainbookstore.business.BookRating;
+import com.acertainbookstore.business.CertainBookStore;
 import com.acertainbookstore.business.ReplicationRequest;
 import com.acertainbookstore.business.ReplicationResult;
 import com.acertainbookstore.business.SlaveCertainBookStore;
+import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.utils.BookStoreConstants;
 import com.acertainbookstore.utils.BookStoreException;
 import com.acertainbookstore.utils.BookStoreMessageTag;
@@ -58,22 +62,59 @@ public class SlaveBookStoreHTTPMessageHandler extends AbstractHandler {
 		} else if (!BookStoreUtility.isEmpty(requestURI)
 				&& requestURI.toLowerCase().startsWith("/replicate")) {
 			String xml = BookStoreUtility.extractPOSTDataFromRequest(request);
-
+			// PCSD
 			ReplicationRequest replicationRequest = (ReplicationRequest) BookStoreUtility
 					.deserializeXMLStringToObject(xml);
 			switch(replicationRequest.getMessageType()) {
-			case ADDCOPIES:
-				// TODO
-				break;
 			case ADDBOOKS:
-				// TODO
+				BookStoreResponse bookStoreresponse = new BookStoreResponse();
+				Set<StockBook> bookSet = (Set<StockBook>) replicationRequest.getDataSet();
+				try {
+					CertainBookStore.getInstance().addBooks(bookSet);;
+				} catch (BookStoreException ex) {
+					bookStoreresponse.setException(ex);
+				}
+				response.getWriter().println(
+						BookStoreUtility
+								.serializeObjectToXMLString(bookStoreresponse));
 				break;
-			case UPDATEEDITORPICKS:
-				// TODO
+			case ADDCOPIES:
+				bookStoreresponse = new BookStoreResponse();
+				Set<BookCopy> bookCopiesSet = (Set<BookCopy>) replicationRequest.getDataSet();
+				try {
+					CertainBookStore.getInstance().addCopies(bookCopiesSet);
+				} catch (BookStoreException ex) {
+					bookStoreresponse.setException(ex);
+				}
+				response.getWriter().println(
+						BookStoreUtility
+								.serializeObjectToXMLString(bookStoreresponse));
 				break;
 			case RATEBOOKS:
-				// TODO
+				bookStoreresponse = new BookStoreResponse();
+				Set<BookRating> bookRating = (Set<BookRating>) replicationRequest.getDataSet();
+				try {
+					CertainBookStore.getInstance().rateBooks(bookRating);
+				} catch (BookStoreException ex) {
+					bookStoreresponse.setException(ex);
+				}
+				response.getWriter().println(
+						BookStoreUtility
+								.serializeObjectToXMLString(bookStoreresponse));
 				break;
+			case UPDATEEDITORPICKS:
+				bookStoreresponse = new BookStoreResponse();
+				Set<BookEditorPick> editorPicks = (Set<BookEditorPick>) replicationRequest.getDataSet();
+				try {
+					CertainBookStore.getInstance().updateEditorPicks(editorPicks);;
+				} catch (BookStoreException ex) {
+					bookStoreresponse.setException(ex);
+				}
+				response.getWriter().println(
+						BookStoreUtility
+								.serializeObjectToXMLString(bookStoreresponse));
+				break;
+			
 			default:
 				System.out.println("Unhandled message tag");
 				break;

@@ -9,7 +9,6 @@ import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 
 import com.acertainbookstore.utils.BookStoreException;
-import com.acertainbookstore.utils.BookStoreMessageTag;
 import com.acertainbookstore.utils.BookStoreUtility;
 
 /**

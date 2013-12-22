@@ -10,6 +10,7 @@ import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 
 import org.eclipse.jetty.client.ContentExchange;
@@ -101,15 +102,26 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 			this.slaveAddresses.add(slave);
 		}
 	}
-
+	/**
+	 * PCSD
+	 * Currently based on a random strategy
+	 * @return an address to a slave
+	 */
 	public String getReplicaAddress() {
-		return ""; // TODO
+	
+		Random random = new Random();
+		int i = random.nextInt(this.slaveAddresses.size());
+		int j =0;
+		for (String address : this.slaveAddresses) {
+			if (j==i) return address;
+			j++;
+		}
+		return null; 
 	}
 
 	public String getMasterServerAddress() {
 		return this.masterAddress;
 	}
-
 	public void buyBooks(Set<BookCopy> isbnSet) throws BookStoreException {
 
 		String listISBNsxmlString = BookStoreUtility

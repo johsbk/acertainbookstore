@@ -1,6 +1,5 @@
 package com.acertainbookstore.business;
 
-import java.net.URL;
 import java.util.concurrent.Callable;
 
 import org.eclipse.jetty.client.ContentExchange;

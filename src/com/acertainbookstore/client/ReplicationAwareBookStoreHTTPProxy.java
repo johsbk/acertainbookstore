@@ -105,7 +105,7 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 	/**
 	 * PCSD
 	 * Currently based on a random strategy
-	 * @return an address to a slave
+	 * @return an address to a slave or master address
 	 */
 	public String getReplicaAddress() {
 	
@@ -113,10 +113,13 @@ public class ReplicationAwareBookStoreHTTPProxy implements BookStore {
 		int i = random.nextInt(this.slaveAddresses.size());
 		int j =0;
 		for (String address : this.slaveAddresses) {
-			if (j==i) return address;
+			if (j==i) 
+			{
+				return address;
+			}
 			j++;
 		}
-		return null; 
+		return this.masterAddress; 
 	}
 
 	public String getMasterServerAddress() {

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 
 import org.eclipse.jetty.client.ContentExchange;
@@ -99,7 +100,17 @@ public class ReplicationAwareStockManagerHTTPProxy implements StockManager {
 	}
 
 	public String getReplicaAddress() {
-		return ""; // TODO
+		Random random = new Random();
+		int i = random.nextInt(this.slaveAddresses.size());
+		int j =0;
+		for (String address : this.slaveAddresses) {
+			if (j==i) 
+			{
+				return address;
+			}
+			j++;
+		}
+		return this.masterAddress; 
 	}
 
 	public String getMasterServerAddress() {
